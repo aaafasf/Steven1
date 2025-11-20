@@ -24,27 +24,31 @@ jobs:
     - name: Install dependencies
       run: pip install -r requirements.txt
 
-    - name: 🔐 Login to GitHub Container Registry
+    # ✅ Login a GHCR usando tu PAT como secret
+    - name: Login to GitHub Container Registry
       uses: docker/login-action@v3
       with:
         registry: ghcr.io
         username: aaafasf
         password: ${{ secrets.GHCR_PAT }}
 
-    - name: 🏗️ Build and push Docker image
+    # ✅ Build y push de la imagen Docker
+    - name: Build and push Docker image
       uses: docker/build-push-action@v6
       with:
         push: true
         tags: ghcr.io/aaafasf/steven1:3.0.0
 
-    - name: 🧾 Mostrar variables básicas (solo locales, no secretos)
+    # Mostrar variables para debug
+    - name: Mostrar variables básicas
       run: |
         echo "Probando conexión SSH con:"
         echo "Host: ${{ secrets.VPS_HOST }}"
         echo "Usuario: ${{ secrets.VPS_USER }}"
         echo "Puerto: ${{ secrets.VPS_SSH_PORT }}"
 
-    - name: 🧪 Probar conexión SSH
+    # Probar conexión SSH
+    - name: Probar conexión SSH
       uses: appleboy/ssh-action@v1
       with:
         host: ${{ secrets.VPS_HOST }}
@@ -57,7 +61,8 @@ jobs:
           whoami
           uptime
 
-    - name: Copiar stack.yml to VPS (SCP)
+    # Copiar stack.yml al VPS
+    - name: Copiar stack.yml
       uses: appleboy/scp-action@v1
       with:
         host: ${{ secrets.VPS_HOST }}
@@ -67,6 +72,7 @@ jobs:
         source: "stack.yml"
         target: "/home/${{ secrets.VPS_USER }}/deploy1"
 
+    # Desplegar servicios en el VPS
     - name: Despliegue de servicios
       uses: appleboy/ssh-action@v1
       with:
@@ -78,20 +84,17 @@ jobs:
           echo "Desplegando servicios"
           cd ~/deploy1
 
-          # PASAMOS EL TOKEN COMO VARIABLE DE ENTORNO DENTRO DEL SCRIPT
-          GHCR_PAT="${{ secrets.GHCR_PAT }}"
-          echo "$GHCR_PAT" | docker login ghcr.io -u aaafasf --password-stdin
+          # Login en GHCR desde el VPS usando el PAT
+          echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u aaafasf --password-stdin
 
+          # Pull de la imagen
           docker pull ghcr.io/aaafasf/steven1:3.0.0
 
-          echo "Deteniendo los servicios (stack) si existen"
+          # Detener stack si existe
           docker stack rm byron || true
-
-          echo "Esperar 20 segundos..."
           sleep 20
 
-          echo "Desplegando el stack o los servicios"
+          # Desplegar stack
           docker stack deploy --with-registry-auth -c stack.yml byron
-
           docker ps
 
