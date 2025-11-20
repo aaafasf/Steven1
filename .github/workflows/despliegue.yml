@@ -13,7 +13,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
     - name: Set up Python 3.10
       uses: actions/setup-python@v3
@@ -73,12 +74,15 @@ jobs:
         username: ${{ secrets.VPS_USER }}
         password: ${{ secrets.VPS_PASSWORD }}
         port: ${{ secrets.VPS_SSH_PORT }}
+        env:
+          GHCR_PAT: ${{ secrets.GHCR_PAT }}  # PASAMOS EL SECRETO AL SCRIPT REMOTO
         script: |
           echo "Desplegando servicios"
           cd ~/deploy1
 
-          echo "Descargando la imagen desde GHCR"
-          echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u aaafasf --password-stdin
+          # Login seguro con token pasado por variable de entorno
+          echo "$GHCR_PAT" | docker login ghcr.io -u aaafasf --password-stdin
+
           docker pull ghcr.io/aaafasf/steven1:3.0.0
 
           echo "Deteniendo los servicios (stack) si existen"
