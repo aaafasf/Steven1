@@ -1,6 +1,3 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
 name: Python application
 
 on:
@@ -13,15 +10,16 @@ permissions:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
+
     - name: Set up Python 3.10
       uses: actions/setup-python@v3
       with:
         python-version: "3.10"
+
     - name: Install dependencies
       run: pip install -r requirements.txt
 
@@ -29,14 +27,14 @@ jobs:
       uses: docker/login-action@v3
       with:
         registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+        username: aaafasf
+        password: ${{ secrets.GHCR_PAT }}
 
     - name: 🏗️ Build and push Docker image
       uses: docker/build-push-action@v6
       with:
         push: true
-        tags: ghcr.io/byronmoreno/finalquintoc:3.0.0
+        tags: ghcr.io/aaafasf/steven1:3.0.0
 
     - name: 🧾 Mostrar variables básicas (solo locales, no secretos)
       run: |
@@ -44,7 +42,7 @@ jobs:
         echo "Host: ${{ secrets.VPS_HOST }}"
         echo "Usuario: ${{ secrets.VPS_USER }}"
         echo "Puerto: ${{ secrets.VPS_SSH_PORT }}"
-    
+
     - name: 🧪 Probar conexión SSH
       uses: appleboy/ssh-action@v1
       with:
@@ -57,6 +55,7 @@ jobs:
           hostname
           whoami
           uptime
+
     - name: Copiar stack.yml to VPS (SCP)
       uses: appleboy/scp-action@v1
       with:
@@ -74,24 +73,21 @@ jobs:
         username: ${{ secrets.VPS_USER }}
         password: ${{ secrets.VPS_PASSWORD }}
         port: ${{ secrets.VPS_SSH_PORT }}
-        script: | 
+        script: |
           echo "Desplegando servicios"
           cd ~/deploy1
 
-          echo "Descargando la imagen desde GIT"
-          echo "${{ secrets.GHCR_PATH }}" | docker login ghcr.io -u byronmoreno --password-stdin
-          docker pull ghcr.io/byronmoreno/finalquintoc:3.0.0
+          echo "Descargando la imagen desde GHCR"
+          echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u aaafasf --password-stdin
+          docker pull ghcr.io/aaafasf/steven1:3.0.0
 
-          echo "Deteniendo los servicios (stack)"
-          docker stack rm byron  || true
+          echo "Deteniendo los servicios (stack) si existen"
+          docker stack rm byron || true
 
           echo "Esperar 20 segundos..."
           sleep 20
 
           echo "Desplegando el stack o los servicios"
-          docker stack deploy --with-registry-auth -c stack.yml byron 
+          docker stack deploy --with-registry-auth -c stack.yml byron
 
           docker ps
-
-
-
