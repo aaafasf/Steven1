@@ -1,25 +1,22 @@
 version: "3.9"
 
 services:
-  manchas:
-    image: ghcr.io/byronmoreno/finalquintoc:3.0.0
+  app:
+    image: ghcr.io/aaafasf/steven1:3.0.0
+    networks:
+      - traefik-public
     deploy:
       replicas: 1
       labels:
-        - 'traefik.enable=true'
-        - 'traefik.http.routers.manchas.entrypoints=http'
-        - 'traefik.http.routers.manchas.rule=Host(`manchas.byronrm.com`)'
-        - 'traefik.http.middlewares.manchas-https-redirect.redirectscheme.scheme=https'
-        - 'traefik.http.routers.manchas.middlewares=manchas-https-redirect'
-        - 'traefik.http.routers.manchas-secure.entrypoints=https'
-        - 'traefik.http.routers.manchas-secure.rule=Host(`manchas.byronrm.com`)'
-        - 'traefik.http.routers.manchas-secure.tls=true'
-        - 'traefik.http.routers.manchas-secure.tls.certresolver=http'
-        - 'traefik.http.routers.manchas-secure.service=manchas'
-        - 'traefik.http.services.manchas.loadbalancer.server.port=1001'
-        - 'traefik.docker.network=traefik-public'
-    networks:
-      - traefik-public
+        - "traefik.enable=true"
+
+        # Dominio
+        - "traefik.http.routers.steven.rule=Host(`steven.byronrm.com`)"
+        - "traefik.http.routers.steven.entrypoints=websecure"
+        - "traefik.http.routers.steven.tls.certresolver=myresolver"
+
+        # Servicio interno
+        - "traefik.http.services.steven.loadbalancer.server.port=1001"
 
 networks:
   traefik-public:

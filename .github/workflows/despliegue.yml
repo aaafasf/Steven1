@@ -69,8 +69,8 @@ jobs:
           cd ~/deploy1
           echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u aaafasf --password-stdin
           docker pull ghcr.io/aaafasf/steven1:3.0.0
-          docker stack rm byron || true
+          docker stack rm steven || true
           sleep 10
-          docker stack deploy --with-registry-auth -c stack.yml byron
+          docker stack deploy --with-registry-auth -c stack.yml steven
           docker service ls
 
