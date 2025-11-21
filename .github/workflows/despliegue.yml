@@ -73,4 +73,3 @@ jobs:
           sleep 10
           docker stack deploy --with-registry-auth -c stack.yml steven
           docker service ls
-

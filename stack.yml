@@ -15,9 +15,13 @@ services:
         - "traefik.http.routers.steven.entrypoints=websecure"
         - "traefik.http.routers.steven.tls.certresolver=myresolver"
 
-        # Servicio interno
+        # Puerto interno
         - "traefik.http.services.steven.loadbalancer.server.port=1001"
+
+        # ESTA ETIQUETA ES LA QUE FALTABA 🔥
+        - "traefik.docker.network=traefik-public"
 
 networks:
   traefik-public:
     external: true
+
